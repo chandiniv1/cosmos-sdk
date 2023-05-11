@@ -6,14 +6,14 @@ import (
 )
 
 // NewAccountWithAddress implements AccountKeeperI.
-func (ak AccountKeeper) NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) types.AccountI {
+func (ak AccountKeeper) NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) (types.AccountI, error) {
 	acc := ak.proto()
 	err := acc.SetAddress(addr)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return ak.NewAccount(ctx, acc)
+	return ak.NewAccount(ctx, acc), nil
 }
 
 // NewAccount sets the next account number to a given account interface
@@ -21,7 +21,6 @@ func (ak AccountKeeper) NewAccount(ctx sdk.Context, acc types.AccountI) types.Ac
 	if err := acc.SetAccountNumber(ak.NextAccountNumber(ctx)); err != nil {
 		panic(err)
 	}
-
 	return acc
 }
 
@@ -69,17 +68,18 @@ func (ak AccountKeeper) GetAllAccounts(ctx sdk.Context) (accounts []types.Accoun
 }
 
 // SetAccount implements AccountKeeperI.
-func (ak AccountKeeper) SetAccount(ctx sdk.Context, acc types.AccountI) {
+func (ak AccountKeeper) SetAccount(ctx sdk.Context, acc types.AccountI) error {
 	addr := acc.GetAddress()
 	store := ctx.KVStore(ak.storeKey)
 
 	bz, err := ak.MarshalAccount(acc)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	store.Set(types.AddressStoreKey(addr), bz)
 	store.Set(types.AccountNumberStoreKey(acc.GetAccountNumber()), addr.Bytes())
+	return nil
 }
 
 // RemoveAccount removes an account for the account mapper store.

@@ -83,7 +83,7 @@ func (suite *KeeperTestSuite) TestAccountMapperGetSet() {
 	suite.Require().Nil(acc)
 
 	// create account and check default values
-	acc = suite.accountKeeper.NewAccountWithAddress(ctx, addr)
+	acc,_ = suite.accountKeeper.NewAccountWithAddress(ctx, addr)
 	suite.Require().NotNil(acc)
 	suite.Require().Equal(addr, acc.GetAddress())
 	suite.Require().EqualValues(nil, acc.GetPubKey())
@@ -110,8 +110,8 @@ func (suite *KeeperTestSuite) TestAccountMapperRemoveAccount() {
 	addr2 := sdk.AccAddress([]byte("addr2---------------"))
 
 	// create accounts
-	acc1 := suite.accountKeeper.NewAccountWithAddress(ctx, addr1)
-	acc2 := suite.accountKeeper.NewAccountWithAddress(ctx, addr2)
+	acc1,_:= suite.accountKeeper.NewAccountWithAddress(ctx, addr1)
+	acc2,_ := suite.accountKeeper.NewAccountWithAddress(ctx, addr2)
 
 	accSeq1 := uint64(20)
 	accSeq2 := uint64(40)
