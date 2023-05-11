@@ -18,10 +18,10 @@ import (
 // AccountKeeperI is the interface contract that x/auth's keeper implements.
 type AccountKeeperI interface {
 	// Return a new account with the next account number and the specified address. Does not save the new account to the store.
-	NewAccountWithAddress(sdk.Context, sdk.AccAddress) (types.AccountI,error)
+	NewAccountWithAddress(sdk.Context, sdk.AccAddress) (types.AccountI, error)
 
 	// Return a new account with the next account number. Does not save the new account to the store.
-	NewAccount(sdk.Context, types.AccountI) types.AccountI
+	NewAccount(sdk.Context, types.AccountI) (types.AccountI, error)
 
 	// Check if an account exists in the store.
 	HasAccount(sdk.Context, sdk.AccAddress) bool
@@ -210,7 +210,8 @@ func (ak AccountKeeper) GetModuleAccountAndPermissions(ctx sdk.Context, moduleNa
 
 	// create a new module account
 	macc := types.NewEmptyModuleAccount(moduleName, perms...)
-	maccI := (ak.NewAccount(ctx, macc)).(types.ModuleAccountI) // set the account number
+	newAcc, _ := ak.NewAccount(ctx, macc)
+	maccI := (newAcc).(types.ModuleAccountI) // set the account number
 	ak.SetModuleAccount(ctx, maccI)
 
 	return maccI, perms

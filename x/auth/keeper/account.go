@@ -13,15 +13,15 @@ func (ak AccountKeeper) NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddre
 		return nil, err
 	}
 
-	return ak.NewAccount(ctx, acc), nil
+	return ak.NewAccount(ctx, acc)
 }
 
 // NewAccount sets the next account number to a given account interface
-func (ak AccountKeeper) NewAccount(ctx sdk.Context, acc types.AccountI) types.AccountI {
+func (ak AccountKeeper) NewAccount(ctx sdk.Context, acc types.AccountI) (types.AccountI,error) {
 	if err := acc.SetAccountNumber(ak.NextAccountNumber(ctx)); err != nil {
-		panic(err)
+		return nil,err
 	}
-	return acc
+	return acc,nil
 }
 
 // HasAccount implements AccountKeeperI.
