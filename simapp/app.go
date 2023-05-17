@@ -377,6 +377,14 @@ func NewSimApp(
 		),
 	)
 
+	bankKeeper := bankkeeper.NewBaseKeeper(
+		appCodec, keys[banktypes.StoreKey], app.AccountKeeper, BlockedAddresses(), authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
+	app.BankKeeper = *bankKeeper.SetHooks(
+		banktypes.NewMultiBankHooks(),
+	)
+
 	app.NFTKeeper = nftkeeper.NewKeeper(keys[nftkeeper.StoreKey], appCodec, app.AccountKeeper, app.BankKeeper)
 
 	// create evidence keeper with router

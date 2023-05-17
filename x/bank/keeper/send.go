@@ -56,7 +56,7 @@ type BaseSendKeeper struct {
 
 	// list of addresses that are restricted from receiving transactions
 	blockedAddrs map[string]bool
-
+	hooks	types.BankHooks
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
 	authority string
@@ -79,6 +79,7 @@ func NewBaseSendKeeper(
 		ak:             ak,
 		storeKey:       storeKey,
 		blockedAddrs:   blockedAddrs,
+		hooks:			nil,
 		authority:      authority,
 	}
 }
@@ -190,6 +191,9 @@ func (k BaseSendKeeper) InputOutputCoins(ctx sdk.Context, inputs []types.Input, 
 // SendCoins transfers amt coins from a sending account to a receiving account.
 // An error is returned upon failure.
 func (k BaseSendKeeper) SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error {
+	if err:=k.Hooks().BeforeSendCoins(ctx,fromAddr,toAddr,amt);err!=nil{
+		return err
+	}
 	err := k.subUnlockedCoins(ctx, fromAddr, amt)
 	if err != nil {
 		return err
@@ -208,6 +212,10 @@ func (k BaseSendKeeper) SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAd
 	if !accExists {
 		defer telemetry.IncrCounter(1, "new", "account")
 		k.ak.SetAccount(ctx, k.ak.NewAccountWithAddress(ctx, toAddr))
+	}
+
+	if err:=k.Hooks().AfterSendCoins(ctx,fromAddr,toAddr,amt);err!=nil{
+		return err
 	}
 
 	// bech32 encoding is expensive! Only do it once for fromAddr

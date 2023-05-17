@@ -27,3 +27,12 @@ type AccountKeeper interface {
 	SetModuleAccount(ctx sdk.Context, macc types.ModuleAccountI)
 	GetModulePermissions() map[string]types.PermissionsForAddress
 }
+
+type BankHooks interface{
+	BeforeSendCoins(ctx sdk.Context,fromAddr sdk.AccAddress,toAddr sdk.AccAddress,amt sdk.Coins)error
+	AfterSendCoins(ctx sdk.Context,fromAddr sdk.AccAddress,toAddr sdk.AccAddress,amt sdk.Coins)error
+}
+
+type BankHooksWrapper struct{ BankHooks }
+
+func (BankHooksWrapper) IsOnePerModuleType(){}

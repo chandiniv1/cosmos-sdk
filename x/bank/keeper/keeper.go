@@ -47,6 +47,7 @@ type Keeper interface {
 	DelegateCoins(ctx sdk.Context, delegatorAddr, moduleAccAddr sdk.AccAddress, amt sdk.Coins) error
 	UndelegateCoins(ctx sdk.Context, moduleAccAddr, delegatorAddr sdk.AccAddress, amt sdk.Coins) error
 
+
 	types.QueryServer
 }
 
@@ -57,6 +58,7 @@ type BaseKeeper struct {
 	ak                     types.AccountKeeper
 	cdc                    codec.BinaryCodec
 	storeKey               storetypes.StoreKey
+	hooks                  types.BankHooks
 	mintCoinsRestrictionFn MintingRestrictionFn
 }
 
@@ -111,6 +113,26 @@ func NewBaseKeeper(
 		storeKey:               storeKey,
 		mintCoinsRestrictionFn: func(ctx sdk.Context, coins sdk.Coins) error { return nil },
 	}
+}
+
+func (k *BaseSendKeeper) Hooks() types.BankHooks {
+	if k.hooks == nil {
+		// return a no-op implementation if no hooks are set
+		return types.MultiBankHooks{}
+	}
+
+	return k.hooks
+}
+
+// SetHooks sets the hooks for Bank
+func (k *BaseKeeper) SetHooks(bh types.BankHooks) *BaseKeeper {
+	if k.hooks != nil {
+		panic("cannot set governance hooks twice")
+	}
+
+	k.hooks = bh
+
+	return k
 }
 
 // WithMintCoinsRestriction restricts the bank Keeper used within a specific module to

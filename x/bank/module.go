@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"time"
 
 	modulev1 "cosmossdk.io/api/cosmos/bank/module/v1"
@@ -202,7 +203,8 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 func init() {
 	appmodule.Register(&modulev1.Module{},
 		appmodule.Provide(ProvideModule),
-	)
+		appmodule.Invoke(InvokeSetHooks))
+
 }
 
 type BankInputs struct {
@@ -257,4 +259,28 @@ func ProvideModule(in BankInputs) BankOutputs {
 	m := NewAppModule(in.Cdc, bankKeeper, in.AccountKeeper, in.LegacySubspace)
 
 	return BankOutputs{BankKeeper: bankKeeper, Module: m}
+}
+
+func InvokeSetHooks(keeper *keeper.BaseKeeper, bankHooks map[string]types.BankHooksWrapper) error {
+	if keeper == nil || bankHooks == nil {
+		return nil
+	}
+
+	// Default ordering is lexical by module name.
+	// Explicit ordering can be added to the module config if required.
+	modNames := maps.Keys(bankHooks)
+	order := modNames
+	sort.Strings(order)
+
+	var multiHooks types.MultiBankHooks
+	for _, modName := range order {
+		hook, ok := bankHooks[modName]
+		if !ok {
+			return fmt.Errorf("can't find staking hooks for module %s", modName)
+		}
+		multiHooks = append(multiHooks, hook)
+	}
+
+	keeper.SetHooks(multiHooks)
+	return nil
 }
