@@ -63,7 +63,6 @@ func (ak AccountKeeper) GetAllAccounts(ctx sdk.Context) (accounts []types.Accoun
 		accounts = append(accounts, acc)
 		return false
 	})
-
 	return accounts
 }
 
